@@ -12,10 +12,11 @@ const app = express()
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || config.allowedOrigins.includes(origin)) {
+      if (!origin || config.allowedOrigins.includes(origin) || origin.includes("vercel.app")) {
         callback(null, true)
         return
       }
+      console.error(`CORS rejected origin: ${origin}. Allowed: ${config.allowedOrigins.join(", ")}`);
       callback(new Error("Not allowed by CORS"))
     },
     methods: ["GET", "POST"],
