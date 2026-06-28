@@ -85,8 +85,7 @@ function mapYtDlpError(stderr: string): string {
   if (s.includes("live event") || s.includes("is live")) {
     return "Live stream belum didukung"
   }
-  return "Video tidak bisa diproses"
-}
+  return "Video tidak bisa diproses: " + stderr
 
 async function fetchFullInfo(url: string): Promise<YtDlpInfo> {
   let stdout: string
