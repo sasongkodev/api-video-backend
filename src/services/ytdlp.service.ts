@@ -91,7 +91,7 @@ async function fetchFullInfo(url: string): Promise<YtDlpInfo> {
   let stdout: string
   try {
     const res = await runYtDlp(
-      ["-J", "--no-playlist", "--no-warnings", url],
+      ["-J", "--no-playlist", "--no-warnings", "--force-ipv4", url],
       { timeoutMs: 45_000 }
     )
     stdout = res.stdout
@@ -322,6 +322,7 @@ export async function processWithYtDlp(
     "--no-playlist",
     "--no-warnings",
     "--no-part",
+    "--force-ipv4",
     "--merge-output-format",
     "mp4",
     "--remux-video",
