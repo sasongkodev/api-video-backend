@@ -86,6 +86,7 @@ function mapYtDlpError(stderr: string): string {
     return "Live stream belum didukung"
   }
   return "Video tidak bisa diproses: " + stderr
+}
 
 async function fetchFullInfo(url: string): Promise<YtDlpInfo> {
   let stdout: string
