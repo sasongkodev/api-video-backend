@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.50.1-jammy
+FROM mcr.microsoft.com/playwright:v1.61.1-jammy
 
 # Install python3 and ffmpeg which are required by yt-dlp
 RUN apt-get update && \
