@@ -99,9 +99,13 @@ export async function streamFile(req: Request, res: Response): Promise<void> {
 
   res.setHeader("Content-Type", contentType)
   res.setHeader("Accept-Ranges", "bytes")
+  // RFC 5987: filename*=UTF-8''<percent-encoded> supports Unicode.
+  // The plain filename= fallback must contain only ASCII printable chars.
+  const asciiName = downloadName.replace(/[^\x20-\x7E]/g, "_").replace(/[\\"]/g, "_")
+  const encodedName = encodeURIComponent(downloadName)
   res.setHeader(
     "Content-Disposition",
-    `${disposition}; filename="${downloadName}"`
+    `${disposition}; filename="${asciiName}"; filename*=UTF-8''${encodedName}`
   )
 
   // Files live only in the temp dir and are removed by the scheduled cleanup,
@@ -138,9 +142,10 @@ function buildDownloadName(
   if (typeof raw !== "string" || raw.trim() === "") return fallback
 
   // Strip path separators and characters that are invalid in filenames.
+  // \u0000-\u001f are ASCII control chars; \u007f is DEL.
   const cleaned = raw
     .replace(/[\\/]/g, " ")
-    .replace(/[<>:"|?*\u0000-\u001f]/g, "")
+    .replace(/[<>:"|?*\u0000-\u001f\u007f]/g, "")
     .trim()
     .slice(0, 150)
 

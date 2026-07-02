@@ -4,6 +4,8 @@ import { config } from "../config"
 import { streamUrl, tempFilePath, ensureTempDir, resolveExtension } from "../utils/file"
 import { isDirectMediaUrl } from "../utils/validate-url"
 import { processWithYtDlp, YtDlpError, fetchFormats } from "./ytdlp.service"
+import { resolveWithPlaywright } from "./playwright.service"
+import { extractGenericHtml } from "./generic-extractor.service"
 import type { DownloadSuccess, FormatInfo } from "../types/download"
 
 export class DownloadError extends Error {}
@@ -115,6 +117,32 @@ export async function processInfo(url: URL): Promise<{
   try {
     return await fetchFormats(url.toString())
   } catch (err) {
+    if (err instanceof YtDlpError && (err.message === "URL tidak didukung" || err.message === "Video tidak bisa diproses" || err.message.includes("Video tidak bisa diproses"))) {
+      let resolved = await extractGenericHtml(url)
+      if (!resolved) {
+        resolved = await resolveWithPlaywright(url)
+      }
+      
+      if (resolved) {
+        return {
+          title: resolved.title,
+          thumbnail: resolved.thumbnail,
+          formats: [
+            {
+              formatId: "direct",
+              resolution: "Original",
+              quality: "Direct",
+              ext: resolveExtension(new URL(resolved.fileUrl).pathname),
+              filesize: null,
+              hasVideo: true,
+              hasAudio: true,
+            },
+          ],
+          duration: null,
+        }
+      }
+    }
+
     if (err instanceof YtDlpError) {
       throw new DownloadError(err.message)
     }
@@ -138,6 +166,21 @@ export async function processDownload(
   try {
     return await processWithYtDlp(url, formatId)
   } catch (err) {
+    if (err instanceof YtDlpError && (err.message === "URL tidak didukung" || err.message === "Video tidak bisa diproses" || err.message.includes("Video tidak bisa diproses"))) {
+      let resolved = await extractGenericHtml(url)
+      if (!resolved) {
+        resolved = await resolveWithPlaywright(url)
+      }
+      if (resolved) {
+        const { fileName } = await streamToDisk(resolved.fileUrl)
+        return {
+          title: resolved.title,
+          thumbnail: resolved.thumbnail,
+          streamUrl: streamUrl(fileName),
+        }
+      }
+    }
+
     if (err instanceof YtDlpError) {
       throw new DownloadError(err.message)
     }
