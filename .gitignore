@@ -4,3 +4,6 @@ dist
 public/downloads/*
 !public/downloads/.gitkeep
 temp/*
+liveomek-debug.png
+test-sniffer.ts
+
